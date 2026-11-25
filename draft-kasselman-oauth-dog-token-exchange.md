@@ -9,8 +9,8 @@ number:
 date:
 consensus: true
 v: 3
-area: SEC
-workgroup: Web Authorization Protocol
+area: "Security"
+workgroup: "Web Authorization Protocol"
 keyword:
  - OAuth
  - delegated operation grant
@@ -18,12 +18,12 @@ keyword:
  - workload
  - agent
 venue:
-  group: Web Authorization Protocol
-  type: Working Group
-  mail: oauth@ietf.org
-  arch: https://mailarchive.ietf.org/arch/browse/oauth/
-  github: PieterKas/draft-kasselman-oauth-dog-token-exchange
-  latest: https://PieterKas.github.io/draft-kasselman-oauth-dog-token-exchange/draft-kasselman-oauth-dog-token-exchange.html
+  group: "Web Authorization Protocol"
+  type: "Working Group"
+  mail: "oauth@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/oauth/"
+  github: "PieterKas/draft-kasselman-oauth-dog-token-exchange"
+  latest: "https://PieterKas.github.io/draft-kasselman-oauth-dog-token-exchange/draft-kasselman-oauth-dog-token-exchange.html"
 
 author:
  -
