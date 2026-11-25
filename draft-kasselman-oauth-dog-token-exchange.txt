@@ -1,0 +1,245 @@
+
+
+
+
+Web Authorization Protocol                                  P. Kasselman
+Internet-Draft                                          Defakto Security
+Intended status: Standards Track                        25 November 2026
+Expires: 29 May 2027
+
+
+  Delegated Operation Grant Issuance using Token Exchange and Workload
+                          Authorization Grants
+            draft-kasselman-oauth-dog-token-exchange-latest
+
+Abstract
+
+   TODO Abstract.  One paragraph: the Delegated Operation Grant (DOG)
+   leaves issuance, consent and delivery to the deployment; this
+   document profiles them using OAuth 2.0 Token Exchange, a Workload
+   Authorization Grant (WAG) that identifies the agent, and the Deferred
+   Token Response for user consent.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at
+   https://PieterKas.github.io/draft-kasselman-oauth-dog-token-exchange/
+   draft-kasselman-oauth-dog-token-exchange.html.  Status information
+   for this document may be found at https://datatracker.ietf.org/doc/
+   draft-kasselman-oauth-dog-token-exchange/.
+
+   Discussion of this document takes place on the Web Authorization
+   Protocol Working Group mailing list (mailto:oauth@ietf.org), which is
+   archived at https://mailarchive.ietf.org/arch/browse/oauth/.
+   Subscribe at https://www.ietf.org/mailman/listinfo/oauth/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/PieterKas/draft-kasselman-oauth-dog-token-
+   exchange.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 29 May 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  Overview
+   4.  Requesting a DOG
+   5.  User Consent using a Deferred Token Response
+   6.  Token Exchange Response
+   7.  Using the DOG
+     7.1.  At a Resource Authorization Server
+     7.2.  At a Web Server
+   8.  Relationship to the Delegated Operation Grant
+   9.  Security Considerations
+   10. Privacy Considerations
+   11. IANA Considerations
+   12. References
+     12.1.  Normative References
+     12.2.  Informative References
+   Acknowledgments
+   Author's Address
+
+1.  Introduction
+
+   TODO The problem in one paragraph, what [DOG] specifies and what it
+   leaves to deployments, and the claim that existing building blocks
+   ([RFC8693], [I-D.carleton-workload-authz-grant],
+   [I-D.ietf-oauth-deferred-token-response]) fill those gaps without
+   changing the DOG itself.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   TODO Terms: agent, platform, issuing authorization server, resource
+   authorization server, web server.  Agent = workload, runs on the
+   platform.
+
+3.  Overview
+
+   TODO One sequence diagram covering both the immediate and the
+   deferred (interactive) paths, followed by a numbered walk-through.
+
+4.  Requesting a DOG
+
+   TODO Token exchange request parameters: subject_token (ID token or
+   refresh token identifying the user), how the WAG is presented (open:
+   actor_token?), requested_token_type, resource/audience (single-
+   valued), operations, and the completion_mode opt-in.
+
+   Open: token type identifier for a DOG; proof-of-possession key and
+   how it becomes the DOG's cnf.
+
+5.  User Consent using a Deferred Token Response
+
+   TODO Profile the interaction_uri semantics: user authentication,
+   consent to specific operations, polling for completion.  Issuance
+   without interaction when policy allows.
+
+6.  Token Exchange Response
+
+   TODO The DOG returned in access_token with token_type N_A and the
+   issued_token_type, immediately or after polling.
+
+7.  Using the DOG
+
+7.1.  At a Resource Authorization Server
+
+   TODO The platform obtains an access token on the agent's behalf and
+   delivers it to, or injects it for, the agent.
+
+7.2.  At a Web Server
+
+   TODO Direct presentation of the DOG to a web server that returns a
+   cookie.  Open: request format.
+
+8.  Relationship to the Delegated Operation Grant
+
+   TODO Condensed comparison with [DOG]: what is the same, what this
+   profile supplies, and where the mechanisms differ.
+
+9.  Security Considerations
+
+   TODO Security
+
+10.  Privacy Considerations
+
+   TODO Privacy
+
+11.  IANA Considerations
+
+   TODO Possibly a token type URI for a DOG.
+
+12.  References
+
+12.1.  Normative References
+
+   [DOG]      Steele, N., "OAuth 2.0 Delegated Operation Grant", 24
+              November 2026, <https://nicksteele-oai.github.io/ietf-
+              drafts/delegated-operation-grant/>.
+
+   [I-D.carleton-workload-authz-grant]
+              Carleton, P., Steele, N., Parecki, A., Schwenkschuster,
+              A., and B. Campbell, "Workload Authorization Grant", Work
+              in Progress, Internet-Draft, draft-carleton-workload-
+              authz-grant-02, 2 November 2026,
+              <https://datatracker.ietf.org/doc/html/draft-carleton-
+              workload-authz-grant-02>.
+
+   [I-D.ietf-oauth-deferred-token-response]
+              de Oliveira Niero, G. and D. Liu, "Deferred Token
+              Response", Work in Progress, Internet-Draft, draft-ietf-
+              oauth-deferred-token-response-01, 31 October 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
+              deferred-token-response-01>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC6749]  Hardt, D., Ed., "The OAuth 2.0 Authorization Framework",
+              RFC 6749, DOI 10.17487/RFC6749, October 2012,
+              <https://www.rfc-editor.org/rfc/rfc6749>.
+
+   [RFC7523]  Jones, M., Campbell, B., and C. Mortimore, "JSON Web Token
+              (JWT) Profile for OAuth 2.0 Client Authentication and
+              Authorization Grants", RFC 7523, DOI 10.17487/RFC7523, May
+              2015, <https://www.rfc-editor.org/rfc/rfc7523>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [RFC8693]  Jones, M., Nadalin, A., Campbell, B., Ed., Bradley, J.,
+              and C. Mortimore, "OAuth 2.0 Token Exchange", RFC 8693,
+              DOI 10.17487/RFC8693, January 2020,
+              <https://www.rfc-editor.org/rfc/rfc8693>.
+
+12.2.  Informative References
+
+   [I-D.ietf-oauth-identity-assertion-authz-grant]
+              Parecki, A., McGuinness, K., and B. Campbell, "Identity
+              Assertion JWT Authorization Grant", Work in Progress,
+              Internet-Draft, draft-ietf-oauth-identity-assertion-authz-
+              grant-06, 30 October 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
+              identity-assertion-authz-grant-06>.
+
+   [I-D.rosomakho-oauth-txn-challenge]
+              Rosomakho, Y., Campbell, B., McGuinness, K., and P.
+              Kasselman, "OAuth Transaction Authorization Challenge",
+              Work in Progress, Internet-Draft, draft-rosomakho-oauth-
+              txn-challenge-01, 2 November 2026,
+              <https://datatracker.ietf.org/doc/html/draft-rosomakho-
+              oauth-txn-challenge-01>.
+
+   [RFC9449]  Fett, D., Campbell, B., Bradley, J., Lodderstedt, T.,
+              Jones, M., and D. Waite, "OAuth 2.0 Demonstrating Proof of
+              Possession (DPoP)", RFC 9449, DOI 10.17487/RFC9449,
+              September 2023, <https://www.rfc-editor.org/rfc/rfc9449>.
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Author's Address
+
+   Pieter Kasselman
+   Defakto Security
