@@ -57,14 +57,6 @@ The OAuth 2.0 Delegated Operation Grant (DOG) is a JSON Web Token (JWT) authoriz
 
 # Introduction {#intro}
 
-TODO The problem in one paragraph, what {{DOG}} specifies and what it
-leaves to deployments, and the claim that existing building blocks
-({{RFC8693}}, {{I-D.carleton-workload-authz-grant}},
-{{I-D.ietf-oauth-deferred-token-response}}) fill those gaps without
-changing the DOG itself.
-
-# Introduction {#intro}
-
 The OAuth 2.0 Delegated Operation Grant (DOG) {{DOG}} is a JWT used as an
 authorization grant, as described in {{Section 2.1 of RFC7523}}. An
 intermediary, such as a platform or credential manager, holds the DOG and
@@ -99,11 +91,12 @@ authorization server, web server. Agent = workload, runs on the platform.
 In the first phase, the platform obtains a DOG from the authorization
 server on behalf of an agent. The platform presents a WAG that
 identifies the agent and, when the agent acts on behalf of a user, a
-subject token that identifies the user. The authorization server
+subject_token that identifies the user. The authorization server
 either issues the DOG immediately or defers the request until it can
 decide, which may require the user to authenticate and consent. In
-both cases, the DOG is bound to the platform's key and held by the
-platform; the agent never receives it. {{fig-obtain}} shows the flow.
+both cases, the DOG is bound to a key that the platform generates for
+that DOG and never discloses. The agent receives neither the DOG nor
+its key. {{fig-obtain}} shows the flow.
 
 ~~~ ascii-art
 +------+             +----------+                 +---------------+
@@ -149,29 +142,29 @@ platform; the agent never receives it. {{fig-obtain}} shows the flow.
 {: #fig-obtain title="Obtaining a DOG"}
 
 1. The platform issues a Workload Authorization Grant (WAG) that
-   identifies the agent `sub` claim). The WAG can also carry information about the
-   device or hardware and the issuance policy that the platform
-   applied.
+   identifies the agent (`sub` claim). The WAG can also carry
+   information about the device or hardware and the issuance policy
+   that the platform applied.
 
 2. The platform sends a token exchange request {{RFC8693}} to the
    authorization server. The request includes the WAG and names one
    protected resource and the requested operations. When the agent acts
-   on behalf of a user, the request also includes a subject token (e.g. an
+   on behalf of a user, the request also includes a subject_token (e.g. an
    ID token or refresh token) that identifies the user. The request
    includes the completion_mode parameter with the values "deferred"
    and "deferred_interactive"
    {{I-D.ietf-oauth-deferred-token-response}}, and carries a DPoP
-   proof {{RFC9449}} for the platform's key.
+   proof {{RFC9449}} for the a key associated with the DOG (DOG key). A DOG key may be ephemeral, unique per DOG and scoped to a workload or agent, depending on implementation choices and the risk profile of the deployment.
 
    The authorization server then follows either step 3 or steps 4
    to 8.
 
 3. If the authorization server can decide synchronously, it issues the
    DOG in the token exchange response. The DOG is bound to the
-   platform's key. Go to Step 9.
+   Dog key. Go to Step 9.
 
 4. Otherwise, the authorization server returns a deferred response
-   with a deferral_code bound to the platform's key. Its error code
+   with a deferral_code bound to the DOG key. Its error code
    indicates whether the platform must direct the user to an
    interaction_uri (interaction_required), the authorization server
    contacts the user itself (interaction_pending), or the decision
@@ -185,13 +178,15 @@ platform; the agent never receives it. {{fig-obtain}} shows the flow.
 
 7. The platform polls the token endpoint with the deferral code until
    the request completes. Each poll carries a DPoP proof for the same
-   key.
+   DOG key.
 
 8. When the request completes, the authorization server issues the DOG
    in the response to a poll.
    
-9. The platform stores the DOG. It does not disclose the DOG to the
-   agent.
+9. The platform stores the DOG and the DOG key. It does not disclose the DOG or the DOG key to the agent.
+
+## Phase 2: Using a DOG {#overview-use}
+
 
 
 # Requesting a DOG {#request}
