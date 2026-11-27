@@ -94,8 +94,105 @@ authorization server, web server. Agent = workload, runs on the platform.
 
 # Overview {#overview}
 
-TODO One sequence diagram covering both the immediate and the deferred
-(interactive) paths, followed by a numbered walk-through.
+## Phase 1: Obtaining a DOG {#overview-obtain}
+
+In the first phase, the platform obtains a DOG from the authorization
+server on behalf of an agent. The platform presents a WAG that
+identifies the agent and, when the agent acts on behalf of a user, a
+subject token that identifies the user. The authorization server
+either issues the DOG immediately or defers the request until it can
+decide, which may require the user to authenticate and consent. In
+both cases, the DOG is bound to the platform's key and held by the
+platform; the agent never receives it. {{fig-obtain}} shows the flow.
+
+~~~ ascii-art
++------+             +----------+                 +---------------+
+| User |             | Platform |                 | Authorization |
++------+             +----------+                 |     Server    |
+    |                      |                      +---------------+
+    |                      |                              |
+    |                      |---+ (1) Issue WAG            |
+    |                      |<--+                          |
+    |                      |                              |
+    |                      | (2) Token exchange request   |
+    |                      |----------------------------->|
+    |                      |                              |
+ -- If issued immediately -----------------------------------------
+    |                      |                              |
+    |                      | (3) DOG                      |
+    |                      |<-----------------------------|
+    |                      |                              |
+ -- If deferred----------------------------------------------------
+    |                      |                              |
+    |                      | (4) Deferral code and        |
+    |                      |     interaction_uri          |
+    |                      |<-----------------------------|
+    |                      |                              |
+    | (5) Surface          |                              |
+    |     interaction_uri  |                              |
+    |<---------------------|                              |
+    |                      |                              |
+    | (6) Authenticate and consent                        |
+    |---------------------------------------------------->|
+    |                      |                              |
+    |                      | (7) Poll until complete      |
+    |                      |----------------------------->|
+    |                      |                              |
+    |                      | (8) DOG                      |
+    |                      |<-----------------------------|
+    |                      |                              |
+ -- End of alternatives -------------------------------------------
+    |                      |                              |
+    |                      |---+ (9) Hold DOG             |
+    |                      |<--+                          |
+    |                      |                              |
+~~~
+{: #fig-obtain title="Obtaining a DOG"}
+
+1. The platform issues a Workload Authorization Grant (WAG) that
+   identifies the agent ('sub' claim). The WAG can also carry information about the
+   device or hardware and the issuance policy that the platform
+   applied.
+
+2. The platform sends a token exchange request {{RFC8693}} to the
+   authorization server. The request includes the WAG and names one
+   protected resource and the requested operations. When the agent acts
+   on behalf of a user, the request also includes a subject token (e.g. an
+   ID token or refresh token) that identifies the user. The request
+   includes the completion_mode parameter with the values "deferred"
+   and "deferred_interactive"
+   {{I-D.ietf-oauth-deferred-token-response}}, and carries a DPoP
+   proof {{RFC9449}} for the platform's key.
+
+   The authorization server then follows either step 3 or steps 4
+   to 8.
+
+3. If the authorization server can decide synchronously, it issues the
+   DOG in the token exchange response. The DOG is bound to the
+   platform's key. Go to Step 9.
+
+4. Otherwise, the authorization server returns a deferred response
+   with a deferral_code bound to the platform's key. Its error code
+   indicates whether the platform must direct the user to an
+   interaction_uri (interaction_required), the authorization server
+   contacts the user itself (interaction_pending), or the decision
+   does not involve the user (authorization_pending).
+
+5. If the error code is interaction_required, the platform directs the
+   user to the interaction_uri.
+
+6. If the user is involved, the user authenticates, if required, and
+   agrees to the requested operations.
+
+7. The platform polls the token endpoint with the deferral code until
+   the request completes. Each poll carries a DPoP proof for the same
+   key.
+
+8. When the request completes, the authorization server issues the DOG
+   in the response to a poll.
+   
+9. The platform stores the DOG. It does not disclose the DOG to the
+   agent.
 
 
 # Requesting a DOG {#request}
