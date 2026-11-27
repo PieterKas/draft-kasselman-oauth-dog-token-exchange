@@ -7,10 +7,18 @@
 <title>Delegated Operation Grant Issuance using Token Exchange and Workload Authorization Grants</title>
 <meta content="Pieter Kasselman" name="author">
 <meta content="
-       TODO Abstract. One paragraph: the Delegated Operation Grant (DOG) leaves
-issuance, consent and delivery to the deployment; this document profiles
-them using OAuth 2.0 Token Exchange, a Workload Authorization Grant (WAG)
-that identifies the agent, and the Deferred Token Response for user consent. 
+       The OAuth 2.0 Delegated Operation Grant (DOG) lets a platform hold a grant
+that authorizes specific operations at a protected resource on a user's
+behalf, without disclosing the grant to the agent that performs them. This
+document specifies how a platform obtains a DOG using OAuth 2.0 Token
+Exchange, presenting a Workload Authorization Grant (WAG) that identifies
+the agent and, optionally, a token that identifies the user. The
+authorization server either issues the DOG immediately or, when user
+consent is required, uses a Deferred Token Response to direct the user to
+an interaction URI while the platform polls for completion. The document
+also specifies how the platform redeems the DOG for an access token at a
+resource authorization server, or presents it directly to a web server in
+exchange for a session cookie. 
     " name="description">
 <meta content="xml2rfc 3.35.0" name="generator">
 <meta content="OAuth" name="keyword">
@@ -1052,7 +1060,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Kasselman</td>
-<td class="center">Expires 29 May 2027</td>
+<td class="center">Expires 31 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1065,12 +1073,12 @@ svg {
 <dd class="internet-draft">draft-kasselman-oauth-dog-token-exchange-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-11-25" class="published">25 November 2026</time>
+<time datetime="2026-11-27" class="published">27 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-29">29 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-31">31 May 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1083,10 +1091,18 @@ svg {
 <h1 id="title">Delegated Operation Grant Issuance using Token Exchange and Workload Authorization Grants</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">TODO Abstract. One paragraph: the Delegated Operation Grant (DOG) leaves
-issuance, consent and delivery to the deployment; this document profiles
-them using OAuth 2.0 Token Exchange, a Workload Authorization Grant (WAG)
-that identifies the agent, and the Deferred Token Response for user consent.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">The OAuth 2.0 Delegated Operation Grant (DOG) lets a platform hold a grant
+that authorizes specific operations at a protected resource on a user's
+behalf, without disclosing the grant to the agent that performs them. This
+document specifies how a platform obtains a DOG using OAuth 2.0 Token
+Exchange, presenting a Workload Authorization Grant (WAG) that identifies
+the agent and, optionally, a token that identifies the user. The
+authorization server either issues the DOG immediately or, when user
+consent is required, uses a Deferred Token Response to direct the user to
+an interaction URI while the platform polls for completion. The document
+also specifies how the platform redeems the DOG for an access token at a
+resource authorization server, or presents it directly to a web server in
+exchange for a session cookie.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1123,7 +1139,7 @@ that identifies the agent, and the Deferred Token Response for user consent.<a h
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 29 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 31 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
