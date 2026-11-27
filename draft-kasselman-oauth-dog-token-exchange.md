@@ -187,7 +187,107 @@ its key. {{fig-obtain}} shows the flow.
 
 ## Phase 2: Using a DOG {#overview-use}
 
+## Phase 2: Using a DOG {#overview-use}
 
+In the second phase, the agent sends its requests for a protected
+resource to the platform, and the platform uses the DOG to obtain
+access and forwards each request. If the resource is protected by an
+OAuth authorization server, the platform exchanges the DOG for an
+access token. If the resource is a web server that is not protected
+by OAuth, the platform presents the DOG directly and receives a
+session cookie. In both cases, the platform proves possession of the
+DOG key and adds the resulting credential to the requests it
+forwards. The agent never receives a DOG, a key, an access token, or
+a cookie. {{fig-use}} shows the flow.
+
+~~~ ascii-art
++-------+          +----------+        +---------------+ +----------+
+| Agent |          | Platform |        |    Resource   | | Resource |
++-------+          +----------+        | Authorization | |Server or |
+    |                    |             |     Server    | |Web Server|
+    |                    |             +---------------+ +----------+
+    |                    |                     |               |
+    | (1) Request        |                     |               |
+    |------------------->|                     |               |
+    |                    |                     |               |
+ -- If the resource is protected by OAuth --------------------------
+    |                    |                     |               |
+    |                    | (2) DOG + DPoP proof|               |
+    |                    |-------------------->|               |
+    |                    |                     |               |
+    |                    | (3) DPoP-bound      |               |
+    |                    |     access token    |               |
+    |                    |<--------------------|               |
+    |                    |                     |               |
+    |                    | (4) Request with    |               |
+    |                    |     access token    |               |
+    |                    |     + DPoP proof    |               |
+    |                    |------------------------------------>|
+    |                    |                     |               |
+    |                    | (5) Response        |               |
+    |                    |<------------------------------------|
+    |                    |                     |               |
+ -- If the resource is a web server --------------------------------
+    |                    |                     |               |
+    |                    | (6) DOG + DPoP proof|               |
+    |                    |------------------------------------>|
+    |                    |                     |               |
+    |                    | (7) Session cookie  |               |
+    |                    |<------------------------------------|
+    |                    |                     |               |
+    |                    | (8) Request with    |               |
+    |                    |     session cookie  |               |
+    |                    |------------------------------------>|
+    |                    |                     |               |
+    |                    | (9) Response        |               |
+    |                    |<------------------------------------|
+    |                    |                     |               |
+ -- End of alternatives --------------------------------------------
+    |                    |                     |               |
+    | (10) Response      |                     |               |
+    |<-------------------|                     |               |
+    |                    |                     |               |
+~~~
+{: #fig-use title="Using a DOG"}
+
+1. The agent sends a request for a protected resource to the
+   platform. The platform selects the DOG for that agent and resource.
+
+   The platform then follows either steps 2 to 5 or steps 6 to 9.
+
+2. If the resource is protected by an OAuth authorization server and
+   the platform holds no valid access token for that resource server, the platform
+   presents the DOG to the resource authorization server named in the
+   DOG, using the jwt-dpop grant type
+   {{I-D.parecki-oauth-jwt-dpop-grant}} with a DPoP proof {{RFC9449}}
+   signed with the DOG key.
+
+3. The resource authorization server validates the DOG and the DPoP
+   proof and issues an access token that identifies the agent and is
+   bound to the DOG key. The platform caches the access token for
+   later requests under the same DOG.
+
+4. The platform forwards the agent's request to the resource server
+   with the access token and a new DPoP proof signed with the DOG key.
+
+5. The resource server validates the access token and the DPoP proof
+   and returns a response to the platform. Go to step 10.
+
+6. If the resource is a web server that is not protected by OAuth and
+   the platform holds no valid session for the DOG, the platform
+   presents the DOG directly to the web server with a DPoP proof
+   signed with the DOG key.
+
+7. The web server validates the DOG and the DPoP proof and returns a
+   session cookie. The platform keeps the cookie for later requests
+   under the same DOG.
+
+8. The platform forwards the agent's request to the web server with the
+   session cookie.
+
+9. The web server returns a response to the platform.
+
+10. The platform returns the response to the agent.
 
 # Requesting a DOG {#request}
 
