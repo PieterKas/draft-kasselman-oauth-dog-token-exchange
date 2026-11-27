@@ -122,10 +122,9 @@ platform; the agent never receives it. {{fig-obtain}} shows the flow.
     |                      | (3) DOG                      |
     |                      |<-----------------------------|
     |                      |                              |
- -- If deferred----------------------------------------------------
+ -- If deferred ---------------------------------------------------
     |                      |                              |
-    |                      | (4) Deferral code and        |
-    |                      |     interaction_uri          |
+    |                      | (4) Deferral code            |
     |                      |<-----------------------------|
     |                      |                              |
     | (5) Surface          |                              |
@@ -150,7 +149,7 @@ platform; the agent never receives it. {{fig-obtain}} shows the flow.
 {: #fig-obtain title="Obtaining a DOG"}
 
 1. The platform issues a Workload Authorization Grant (WAG) that
-   identifies the agent ('sub' claim). The WAG can also carry information about the
+   identifies the agent `sub` claim). The WAG can also carry information about the
    device or hardware and the issuance policy that the platform
    applied.
 
@@ -218,6 +217,9 @@ when policy allows.
 TODO The DOG returned in access_token with token_type N_A and the
 issued_token_type, immediately or after polling.
 
+# Sender Constrain Tokens {#pop}
+
+TODO Describe how DPoP is used to sender constrain the tokens and perform proof-of-possession.
 
 # Using the DOG {#use}
 
