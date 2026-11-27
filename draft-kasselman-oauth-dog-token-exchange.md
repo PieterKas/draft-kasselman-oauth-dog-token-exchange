@@ -51,19 +51,7 @@ informative:
 
 --- abstract
 
-The OAuth 2.0 Delegated Operation Grant (DOG) lets a platform hold a grant
-that authorizes specific operations at a protected resource on a user's
-behalf, without disclosing the grant to the agent that performs them. This
-document specifies how a platform obtains a DOG using OAuth 2.0 Token
-Exchange, presenting a Workload Authorization Grant (WAG) that identifies
-the agent and, optionally, a token that identifies the user. The
-authorization server either issues the DOG immediately or, when user
-consent is required, uses a Deferred Token Response to direct the user to
-an interaction URI while the platform polls for completion. The document
-also specifies how the platform redeems the DOG for an access token at a
-resource authorization server, or presents it directly to a web server in
-exchange for a session cookie.
-
+The OAuth 2.0 Delegated Operation Grant (DOG) is a JSON Web Token (JWT) authorization grant that authorizes specific operations at a protected resource. An intermediary, such as a platform or credential manager, holds the DOG and does not disclose it to the workload or agent that performs the operations. This document specifies how the intermediary obtains, presents, and uses a DOG on behalf of a workload or agent that acts either on its own behalf or on behalf of a user. The intermediary can exchange the DOG for an OAuth access token or present it directly to a resource server that is not protected by an OAuth authorization server.
 
 --- middle
 
