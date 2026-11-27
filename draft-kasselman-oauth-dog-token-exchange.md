@@ -43,6 +43,8 @@ normative:
     target: https://nicksteele-oai.github.io/ietf-drafts/delegated-operation-grant/
   I-D.ietf-oauth-deferred-token-response:
   I-D.carleton-workload-authz-grant:
+  I-D.parecki-oauth-jwt-dpop-grant:
+  RFC9449:
 
 informative:
   I-D.ietf-oauth-identity-assertion-authz-grant:
