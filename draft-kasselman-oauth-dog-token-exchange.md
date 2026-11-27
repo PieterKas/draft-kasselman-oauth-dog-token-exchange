@@ -183,10 +183,8 @@ its key. {{fig-obtain}} shows the flow.
 
 8. When the request completes, the authorization server issues the DOG
    in the response to a poll.
-   
-9. The platform stores the DOG and the DOG key. It does not disclose the DOG or the DOG key to the agent.
 
-## Phase 2: Using a DOG {#overview-use}
+9. The platform stores the DOG and the DOG key. It does not disclose the DOG or the DOG key to the agent.
 
 ## Phase 2: Using a DOG {#overview-use}
 
