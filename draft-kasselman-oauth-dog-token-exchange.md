@@ -49,7 +49,6 @@ normative:
 informative:
   I-D.ietf-oauth-identity-assertion-authz-grant:
   I-D.rosomakho-oauth-txn-challenge:
-  RFC9449:
 
 --- abstract
 
