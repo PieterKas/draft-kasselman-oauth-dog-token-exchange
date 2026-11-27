@@ -80,29 +80,64 @@ Table of Contents
    1.  Introduction
    2.  Conventions and Definitions
    3.  Overview
+     3.1.  Phase 1: Obtaining a DOG
+     3.2.  Phase 2: Using a DOG
    4.  Requesting a DOG
    5.  User Consent using a Deferred Token Response
    6.  Token Exchange Response
-   7.  Using the DOG
-     7.1.  At a Resource Authorization Server
-     7.2.  At a Web Server
-   8.  Relationship to the Delegated Operation Grant
-   9.  Security Considerations
-   10. Privacy Considerations
-   11. IANA Considerations
-   12. References
-     12.1.  Normative References
-     12.2.  Informative References
+   7.  Sender Constrain Tokens
+   8.  Using the DOG
+     8.1.  At a Resource Authorization Server
+     8.2.  At a Web Server
+   9.  Relationship to the Delegated Operation Grant
+   10. Security Considerations
+   11. Privacy Considerations
+   12. IANA Considerations
+   13. References
+     13.1.  Normative References
+     13.2.  Informative References
    Acknowledgments
    Author's Address
 
 1.  Introduction
 
-   TODO The problem in one paragraph, what [DOG] specifies and what it
-   leaves to deployments, and the claim that existing building blocks
-   ([RFC8693], [I-D.carleton-workload-authz-grant],
-   [I-D.ietf-oauth-deferred-token-response]) fill those gaps without
-   changing the DOG itself.
+   The OAuth 2.0 Delegated Operation Grant (DOG) [DOG] is a JWT used as
+   an authorization grant, as described in Section 2.1 of [RFC7523].  An
+   intermediary, such as a platform or credential manager, holds the DOG
+   and uses it to obtain access for a workload or agent that runs in a
+   less trusted environment.  The workload or agent performs the
+   authorized operations but never receives the DOG itself.
+
+   This document defines:
+
+   *  The DOG format: A DOG is a signed JWT with the typ header value
+      oauth-dog+jwt.  It names one resource authorization server (aud)
+      and one protected resource (resource), lists the authorized
+      operations (scope), and binds the grant to a key (cnf).
+
+   *  Requesting a DOG: The intermediary requests a DOG using OAuth 2.0
+      Token Exchange [RFC8693].  It presents a Workload Authorization
+      Grant (WAG) [I-D.carleton-workload-authz-grant] that identifies
+      the workload or agent.  When the workload or agent acts on behalf
+      of a user, the request also includes a subject token that
+      identifies the user.
+
+   *  User Interaction: When the authorization server requires user
+      interaction, it uses a Deferred Token Response
+      [I-D.ietf-oauth-deferred-token-response].  The user authenticates
+      and consents at an interaction URI while the intermediary polls
+      for the result.  When no interaction is required, the
+      authorization server issues the DOG immediately.
+
+   *  DOG Presentation: The intermediary presents the DOG to a resource
+      authorization server as a JWT authorization grant [RFC7523] and
+      receives an access token.  It can also present the DOG directly to
+      a resource server that is not protected by an OAuth authorization
+      server, which returns a session cookie.
+
+   *  Access Credential Use: The intermediary delivers the resulting
+      access token or cookie to the workload or agent, or injects it
+      into the requests that the workload or agent makes.
 
 2.  Conventions and Definitions
 
@@ -118,8 +153,210 @@ Table of Contents
 
 3.  Overview
 
-   TODO One sequence diagram covering both the immediate and the
-   deferred (interactive) paths, followed by a numbered walk-through.
+3.1.  Phase 1: Obtaining a DOG
+
+   In the first phase, the platform obtains a DOG from the authorization
+   server on behalf of an agent.  The platform presents a WAG that
+   identifies the agent and, when the agent acts on behalf of a user, a
+   subject_token that identifies the user.  The authorization server
+   either issues the DOG immediately or defers the request until it can
+   decide, which may require the user to authenticate and consent.  In
+   both cases, the DOG is bound to a key that the platform generates for
+   that DOG and never discloses.  The agent receives neither the DOG nor
+   its key.  Figure 1 shows the flow.
+
+   +------+             +----------+                 +---------------+
+   | User |             | Platform |                 | Authorization |
+   +------+             +----------+                 |     Server    |
+       |                      |                      +---------------+
+       |                      |                              |
+       |                      |---+ (1) Issue WAG            |
+       |                      |<--+                          |
+       |                      |                              |
+       |                      | (2) Token exchange request   |
+       |                      |----------------------------->|
+       |                      |                              |
+    -- If issued immediately -----------------------------------------
+       |                      |                              |
+       |                      | (3) DOG                      |
+       |                      |<-----------------------------|
+       |                      |                              |
+    -- If deferred ---------------------------------------------------
+       |                      |                              |
+       |                      | (4) Deferral code            |
+       |                      |<-----------------------------|
+       |                      |                              |
+       | (5) Surface          |                              |
+       |     interaction_uri  |                              |
+       |<---------------------|                              |
+       |                      |                              |
+       | (6) Authenticate and consent                        |
+       |---------------------------------------------------->|
+       |                      |                              |
+       |                      | (7) Poll until complete      |
+       |                      |----------------------------->|
+       |                      |                              |
+       |                      | (8) DOG                      |
+       |                      |<-----------------------------|
+       |                      |                              |
+    -- End of alternatives -------------------------------------------
+       |                      |                              |
+       |                      |---+ (9) Hold DOG             |
+       |                      |<--+                          |
+       |                      |                              |
+
+                         Figure 1: Obtaining a DOG
+
+   1.  The platform issues a Workload Authorization Grant (WAG) that
+       identifies the agent (sub claim).  The WAG can also carry
+       information about the device or hardware and the issuance policy
+       that the platform applied.
+
+   2.  The platform sends a token exchange request [RFC8693] to the
+       authorization server.  The request includes the WAG and names one
+       protected resource and the requested operations.  When the agent
+       acts on behalf of a user, the request also includes a
+       subject_token (e.g. an ID token or refresh token) that identifies
+       the user.  The request includes the completion_mode parameter
+       with the values "deferred" and "deferred_interactive"
+       [I-D.ietf-oauth-deferred-token-response], and carries a DPoP
+       proof [RFC9449] for the a key associated with the DOG (DOG key).
+       A DOG key may be ephemeral, unique per DOG and scoped to a
+       workload or agent, depending on implementation choices and the
+       risk profile of the deployment.
+
+       The authorization server then follows either step 3 or steps 4 to
+       8.
+
+   3.  If the authorization server can decide synchronously, it issues
+       the DOG in the token exchange response.  The DOG is bound to the
+       Dog key.  Go to Step 9.
+
+   4.  Otherwise, the authorization server returns a deferred response
+       with a deferral_code bound to the DOG key.  Its error code
+       indicates whether the platform must direct the user to an
+       interaction_uri (interaction_required), the authorization server
+       contacts the user itself (interaction_pending), or the decision
+       does not involve the user (authorization_pending).
+
+   5.  If the error code is interaction_required, the platform directs
+       the user to the interaction_uri.
+
+   6.  If the user is involved, the user authenticates, if required, and
+       agrees to the requested operations.
+
+   7.  The platform polls the token endpoint with the deferral code
+       until the request completes.  Each poll carries a DPoP proof for
+       the same DOG key.
+
+   8.  When the request completes, the authorization server issues the
+       DOG in the response to a poll.
+
+   9.  The platform stores the DOG and the DOG key.  It does not
+       disclose the DOG or the DOG key to the agent.
+
+3.2.  Phase 2: Using a DOG
+
+   In the second phase, the agent sends its requests for a protected
+   resource to the platform, and the platform uses the DOG to obtain
+   access and forwards each request.  If the resource is protected by an
+   OAuth authorization server, the platform exchanges the DOG for an
+   access token.  If the resource is a web server that is not protected
+   by OAuth, the platform presents the DOG directly and receives a
+   session cookie.  In both cases, the platform proves possession of the
+   DOG key and adds the resulting credential to the requests it
+   forwards.  The agent never receives a DOG, a key, an access token, or
+   a cookie.  Figure 2 shows the flow.
+
+   +-------+          +----------+        +---------------+ +----------+
+   | Agent |          | Platform |        |    Resource   | | Resource |
+   +-------+          +----------+        | Authorization | |Server or |
+       |                    |             |     Server    | |Web Server|
+       |                    |             +---------------+ +----------+
+       |                    |                     |               |
+       | (1) Request        |                     |               |
+       |------------------->|                     |               |
+       |                    |                     |               |
+    -- If the resource is protected by OAuth --------------------------
+       |                    |                     |               |
+       |                    | (2) DOG + DPoP proof|               |
+       |                    |-------------------->|               |
+       |                    |                     |               |
+       |                    | (3) DPoP-bound      |               |
+       |                    |     access token    |               |
+       |                    |<--------------------|               |
+       |                    |                     |               |
+       |                    | (4) Request with    |               |
+       |                    |     access token    |               |
+       |                    |     + DPoP proof    |               |
+       |                    |------------------------------------>|
+       |                    |                     |               |
+       |                    | (5) Response        |               |
+       |                    |<------------------------------------|
+       |                    |                     |               |
+    -- If the resource is a web server --------------------------------
+       |                    |                     |               |
+       |                    | (6) DOG + DPoP proof|               |
+       |                    |------------------------------------>|
+       |                    |                     |               |
+       |                    | (7) Session cookie  |               |
+       |                    |<------------------------------------|
+       |                    |                     |               |
+       |                    | (8) Request with    |               |
+       |                    |     session cookie  |               |
+       |                    |------------------------------------>|
+       |                    |                     |               |
+       |                    | (9) Response        |               |
+       |                    |<------------------------------------|
+       |                    |                     |               |
+    -- End of alternatives --------------------------------------------
+       |                    |                     |               |
+       | (10) Response      |                     |               |
+       |<-------------------|                     |               |
+       |                    |                     |               |
+
+                           Figure 2: Using a DOG
+
+   1.   The agent sends a request for a protected resource to the
+        platform.  The platform selects the DOG for that agent and
+        resource.
+
+        The platform then follows either steps 2 to 5 or steps 6 to 9.
+
+   2.   If the resource is protected by an OAuth authorization server
+        and the platform holds no valid access token for that resource
+        server, the platform presents the DOG to the resource
+        authorization server named in the DOG, using the jwt-dpop grant
+        type [I-D.parecki-oauth-jwt-dpop-grant] with a DPoP proof
+        [RFC9449] signed with the DOG key.
+
+   3.   The resource authorization server validates the DOG and the DPoP
+        proof and issues an access token that identifies the agent and
+        is bound to the DOG key.  The platform caches the access token
+        for later requests under the same DOG.
+
+   4.   The platform forwards the agent's request to the resource server
+        with the access token and a new DPoP proof signed with the DOG
+        key.
+
+   5.   The resource server validates the access token and the DPoP
+        proof and returns a response to the platform.  Go to step 10.
+
+   6.   If the resource is a web server that is not protected by OAuth
+        and the platform holds no valid session for the DOG, the
+        platform presents the DOG directly to the web server with a DPoP
+        proof signed with the DOG key.
+
+   7.   The web server validates the DOG and the DPoP proof and returns
+        a session cookie.  The platform keeps the cookie for later
+        requests under the same DOG.
+
+   8.   The platform forwards the agent's request to the web server with
+        the session cookie.
+
+   9.   The web server returns a response to the platform.
+
+   10.  The platform returns the response to the agent.
 
 4.  Requesting a DOG
 
@@ -142,38 +379,43 @@ Table of Contents
    TODO The DOG returned in access_token with token_type N_A and the
    issued_token_type, immediately or after polling.
 
-7.  Using the DOG
+7.  Sender Constrain Tokens
 
-7.1.  At a Resource Authorization Server
+   TODO Describe how DPoP is used to sender constrain the tokens and
+   perform proof-of-possession.
+
+8.  Using the DOG
+
+8.1.  At a Resource Authorization Server
 
    TODO The platform obtains an access token on the agent's behalf and
    delivers it to, or injects it for, the agent.
 
-7.2.  At a Web Server
+8.2.  At a Web Server
 
    TODO Direct presentation of the DOG to a web server that returns a
    cookie.  Open: request format.
 
-8.  Relationship to the Delegated Operation Grant
+9.  Relationship to the Delegated Operation Grant
 
    TODO Condensed comparison with [DOG]: what is the same, what this
    profile supplies, and where the mechanisms differ.
 
-9.  Security Considerations
+10.  Security Considerations
 
    TODO Security
 
-10.  Privacy Considerations
+11.  Privacy Considerations
 
    TODO Privacy
 
-11.  IANA Considerations
+12.  IANA Considerations
 
    TODO Possibly a token type URI for a DOG.
 
-12.  References
+13.  References
 
-12.1.  Normative References
+13.1.  Normative References
 
    [DOG]      Steele, N., "OAuth 2.0 Delegated Operation Grant", 24
               November 2026, <https://nicksteele-oai.github.io/ietf-
@@ -193,6 +435,13 @@ Table of Contents
               oauth-deferred-token-response-01, 31 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
               deferred-token-response-01>.
+
+   [I-D.parecki-oauth-jwt-dpop-grant]
+              Parecki, A., "OAuth 2.0 JWT Authorization Grant with DPoP
+              Binding", Work in Progress, Internet-Draft, draft-parecki-
+              oauth-jwt-dpop-grant-02, 30 October 2026,
+              <https://datatracker.ietf.org/doc/html/draft-parecki-
+              oauth-jwt-dpop-grant-02>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -217,7 +466,12 @@ Table of Contents
               DOI 10.17487/RFC8693, January 2020,
               <https://www.rfc-editor.org/rfc/rfc8693>.
 
-12.2.  Informative References
+   [RFC9449]  Fett, D., Campbell, B., Bradley, J., Lodderstedt, T.,
+              Jones, M., and D. Waite, "OAuth 2.0 Demonstrating Proof of
+              Possession (DPoP)", RFC 9449, DOI 10.17487/RFC9449,
+              September 2023, <https://www.rfc-editor.org/rfc/rfc9449>.
+
+13.2.  Informative References
 
    [I-D.ietf-oauth-identity-assertion-authz-grant]
               Parecki, A., McGuinness, K., and B. Campbell, "Identity
@@ -234,11 +488,6 @@ Table of Contents
               txn-challenge-01, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-rosomakho-
               oauth-txn-challenge-01>.
-
-   [RFC9449]  Fett, D., Campbell, B., Bradley, J., Lodderstedt, T.,
-              Jones, M., and D. Waite, "OAuth 2.0 Demonstrating Proof of
-              Possession (DPoP)", RFC 9449, DOI 10.17487/RFC9449,
-              September 2023, <https://www.rfc-editor.org/rfc/rfc9449>.
 
 Acknowledgments
 
