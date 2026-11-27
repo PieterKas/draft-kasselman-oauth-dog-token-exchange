@@ -63,6 +63,26 @@ leaves to deployments, and the claim that existing building blocks
 {{I-D.ietf-oauth-deferred-token-response}}) fill those gaps without
 changing the DOG itself.
 
+# Introduction {#intro}
+
+The OAuth 2.0 Delegated Operation Grant (DOG) {{DOG}} is a JWT used as an
+authorization grant, as described in {{Section 2.1 of RFC7523}}. An
+intermediary, such as a platform or credential manager, holds the DOG and
+uses it to obtain access for a workload or agent that runs in a less
+trusted environment. The workload or agent performs the authorized
+operations but never receives the DOG itself.
+
+This document defines:
+
+* The DOG format: A DOG is a signed JWT with the `typ` header value `oauth-dog+jwt`. It names one resource authorization server (`aud`) and one protected resource (`resource`), lists the authorized operations (`scope`), and binds the grant to a key (`cnf`).
+
+* Requesting a DOG: The intermediary requests a DOG using OAuth 2.0 Token Exchange {{RFC8693}}. It presents a Workload Authorization Grant (WAG) {{I-D.carleton-workload-authz-grant}} that identifies the workload or agent. When the workload or agent acts on behalf of a user, the request also includes a subject token that identifies the user.
+
+* User Interaction: When the authorization server requires user interaction, it uses a Deferred Token Response {{I-D.ietf-oauth-deferred-token-response}}. The user authenticates and consents at an interaction URI while the intermediary polls for the result. When no interaction is required, the authorization server issues the DOG immediately.
+
+* DOG Presentation: The intermediary presents the DOG to a resource authorization server as a JWT authorization grant {{RFC7523}} and receives an access token. It can also present the DOG directly to a resource server that is not protected by an OAuth authorization server, which returns a session cookie.
+
+* Access Credential Use: The intermediary delivers the resulting access token or cookie to the workload or agent, or injects it into the requests that the workload or agent makes.
 
 # Conventions and Definitions
 
